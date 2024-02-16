@@ -51,11 +51,15 @@ public class Walk {
                 System.err.println("Error writing to output file: " + e.getMessage());
             } catch (InvalidPathException e) {
                 System.err.println("Invalid path: " + e.getMessage());
+            } catch (SecurityException e) {
+                System.err.println("Security error: " + e.getMessage());
             }
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
         } catch (InvalidPathException e) {
             System.err.println("Invalid path: " + e.getMessage());
+        } catch (SecurityException e) {
+            System.err.println("Security error: " + e.getMessage());
         }
     }
 
