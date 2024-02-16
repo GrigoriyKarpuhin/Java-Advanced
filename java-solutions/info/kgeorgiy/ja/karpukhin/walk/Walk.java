@@ -25,7 +25,7 @@ public class Walk {
     public static void walk(String inputFile, String outputFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile, charset))) {
             Path pathOut = Path.of(outputFile);
-            if (!Files.exists(pathOut)) {
+            if (!Files.exists(pathOut) && pathOut.getParent() != null) {
                 Files.createDirectories(pathOut.getParent());
             }
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, charset))) {
