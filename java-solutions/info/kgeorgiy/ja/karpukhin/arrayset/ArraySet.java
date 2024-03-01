@@ -6,11 +6,22 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
     private final List<T> elements;
     private final Comparator<? super T> comparator;
 
+    public ArraySet(Collection<? extends T> collection) {
+        elements = new ArrayList<>(new TreeSet<>(collection));
+        comparator = null;
+    }
+
+    public ArraySet(Collection<? extends T> collection, Comparator<? super T> comparator) {
+        Set<T> set = new TreeSet<>(comparator);
+        set.addAll(collection);
+        elements = new ArrayList<>(set);
+        this.comparator = comparator;
+    }
+
     public ArraySet() {
         elements = Collections.emptyList();
         comparator = null;
     }
-
     @Override
     public Iterator<T> iterator() {
         return elements.iterator();
@@ -20,29 +31,10 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
     public int size() {
         return elements.size();
     }
-    public ArraySet(Collection<? extends T> collection) {
-        elements = new ArrayList<>(new TreeSet<>(collection));
-        comparator = null;
-    }
-
-    public ArraySet(Collection<? extends T> collection, Comparator<? super T> comparator) {
-        TreeSet<T> set = new TreeSet<>(comparator);
-        set.addAll(collection);
-        elements = new ArrayList<>(set);
-        this.comparator = comparator;
-    }
 
     @Override
     public Comparator<? super T> comparator() {
         return comparator;
-    }
-
-    private int getIndex(T element) {
-        int index = Collections.binarySearch(elements, element, comparator);
-        if (index < 0) {
-            index = -index - 1;
-        }
-        return index;
     }
 
     @Override
@@ -87,5 +79,13 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
             }
         }
         return true;
+    }
+
+    private int getIndex(T element) {
+        int index = Collections.binarySearch(elements, element, comparator);
+        if (index < 0) {
+            index = -index - 1;
+        }
+        return index;
     }
 }
