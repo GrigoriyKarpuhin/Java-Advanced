@@ -22,6 +22,7 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
         elements = Collections.emptyList();
         comparator = null;
     }
+
     @Override
     public Iterator<T> iterator() {
         return elements.iterator();
@@ -48,8 +49,18 @@ public class ArraySet<T> extends AbstractSet<T> implements SortedSet<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public SortedSet<T> subSet(T fromElement, T toElement) {
-        if (comparator != null && comparator.compare(fromElement, toElement) > 0) {
+        int comparison;
+        if (comparator != null) {
+            comparison = comparator.compare(fromElement, toElement);
+        } else if (fromElement instanceof Comparable && toElement instanceof Comparable) {
+            comparison = ((Comparable<T>) fromElement).compareTo(toElement);
+        } else {
+            throw new IllegalArgumentException("Elements are not comparable and no comparator provided");
+        }
+
+        if (comparison > 0) {
             throw new IllegalArgumentException("fromElement > toElement");
         }
         return tailSet(fromElement).headSet(toElement);
