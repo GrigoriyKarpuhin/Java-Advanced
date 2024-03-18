@@ -20,6 +20,11 @@ public class StudentDB implements StudentQuery {
                 .thenComparing(Student::getId, Comparator.reverseOrder()));
     }
 
+    private <T> Stream<Student> findStudentsBy(Collection<Student> students, Function<Student, T> extractor, T value) {
+        return sortStudents(students.stream()
+                .filter(student -> extractor.apply(student).equals(value)));
+    }
+
     @Override
     public List<String> getFirstNames(List<Student> students) {
         return mapStudents(students, Student::getFirstName);
@@ -44,10 +49,7 @@ public class StudentDB implements StudentQuery {
 
     @Override
     public Set<String> getDistinctFirstNames(List<Student> students) {
-        // :NOTE: лишняя терминальная операции
-        return getFirstNames(students)
-                .stream()
-                .collect(Collectors.toCollection(TreeSet::new));
+        return new TreeSet<>(getFirstNames(students));
     }
 
     @Override
@@ -72,30 +74,22 @@ public class StudentDB implements StudentQuery {
 
     @Override
     public List<Student> findStudentsByFirstName(Collection<Student> students, String name) {
-        return sortStudents(students.stream()
-                // :NOTE: стоило вынести дублирование .equals(...)
-                .filter(student -> student.getFirstName().equals(name)))
-                .toList();
+        return findStudentsBy(students, Student::getFirstName, name).toList();
     }
 
     @Override
     public List<Student> findStudentsByLastName(Collection<Student> students, String name) {
-        return sortStudents(students.stream()
-                .filter(student -> student.getLastName().equals(name)))
-                .toList();
+        return findStudentsBy(students, Student::getLastName, name).toList();
     }
 
     @Override
     public List<Student> findStudentsByGroup(Collection<Student> students, GroupName group) {
-        return sortStudents(students.stream()
-                .filter(student -> student.getGroup().equals(group)))
-                .toList();
+        return findStudentsBy(students, Student::getGroup, group).toList();
     }
 
     @Override
     public Map<String, String> findStudentNamesByGroup(Collection<Student> students, GroupName group) {
-        // :NOTE: лишняя агрегация в список
-        return findStudentsByGroup(students, group).stream()
+        return findStudentsBy(students, Student::getGroup, group)
                 .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, (name1, name2) -> name1));
     }
 }
