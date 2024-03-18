@@ -44,6 +44,7 @@ public class StudentDB implements StudentQuery {
 
     @Override
     public Set<String> getDistinctFirstNames(List<Student> students) {
+        // :NOTE: лишняя терминальная операции
         return getFirstNames(students)
                 .stream()
                 .collect(Collectors.toCollection(TreeSet::new));
@@ -72,6 +73,7 @@ public class StudentDB implements StudentQuery {
     @Override
     public List<Student> findStudentsByFirstName(Collection<Student> students, String name) {
         return sortStudents(students.stream()
+                // :NOTE: стоило вынести дублирование .equals(...)
                 .filter(student -> student.getFirstName().equals(name)))
                 .toList();
     }
@@ -92,6 +94,7 @@ public class StudentDB implements StudentQuery {
 
     @Override
     public Map<String, String> findStudentNamesByGroup(Collection<Student> students, GroupName group) {
+        // :NOTE: лишняя агрегация в список
         return findStudentsByGroup(students, group).stream()
                 .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, (name1, name2) -> name1));
     }
