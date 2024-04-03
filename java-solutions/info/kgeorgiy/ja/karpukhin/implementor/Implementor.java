@@ -23,11 +23,11 @@ import javax.tools.ToolProvider;
  */
 public class Implementor implements JarImpler {
 
-      /**
+    /**
      * Implements the given interface and writes the implementation to the specified directory.
      *
      * @param token type token to create implementation for.
-     * @param root root directory.
+     * @param root  root directory.
      * @throws ImplerException if an error occurred during the implementation.
      */
     @Override
@@ -39,9 +39,12 @@ public class Implementor implements JarImpler {
         File file = root.resolve(token.getPackageName().replace('.', File.separatorChar))
                 .resolve(token.getSimpleName() + "Impl.java").toFile();
 
-        File parentDirectory = file.getParentFile();
-        if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
-            throw new ImplerException("Cannot create directories for file " + file);
+        if (!file.getParentFile().exists()) {
+            try {
+                Files.createDirectories(file.getParentFile().toPath());
+            } catch (IOException e) {
+                throw new ImplerException("Error creating directories", e);
+            }
         }
 
         StringBuilder classBuilder = new StringBuilder();
@@ -91,7 +94,7 @@ public class Implementor implements JarImpler {
         return builder.toString();
     }
 
-     /**
+    /**
      * Returns the default value for the given type.
      *
      * @param type the type to get the default value for.
@@ -132,19 +135,14 @@ public class Implementor implements JarImpler {
     /**
      * Implements the given interface and creates a JAR file with the implementation.
      *
-     * @param token type token to create implementation for.
+     * @param token   type token to create implementation for.
      * @param jarFile target JAR file.
      * @throws ImplerException if an error occurred during the implementation.
      */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
         Path root = jarFile.toAbsolutePath().getParent();
-        Path tmp;
-        try {
-            tmp = Files.createTempDirectory(root, "penis");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Path tmp = root.resolve("tmp");
         implement(token, tmp);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -166,7 +164,6 @@ public class Implementor implements JarImpler {
             throw new ImplerException("Error compiling generated class");
         }
         Manifest manifest = new Manifest();
-        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
         manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, token.getCanonicalName() + "Impl");
         try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
             jarOutputStream.putNextEntry(new ZipEntry(token.getPackageName().replace('.', File.separatorChar) + File.separatorChar + token.getSimpleName() + "Impl.class"));
