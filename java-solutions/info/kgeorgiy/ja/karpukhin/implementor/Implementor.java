@@ -24,6 +24,12 @@ import javax.tools.ToolProvider;
 public class Implementor implements JarImpler {
 
     /**
+     * Default constructor.
+     */
+    public Implementor() {
+    }
+
+    /**
      * Implements the given interface and writes the implementation to the specified directory.
      *
      * @param token type token to create implementation for.
@@ -36,7 +42,7 @@ public class Implementor implements JarImpler {
             throw new ImplerException("Class " + token.getCanonicalName() + " is not an interface or is private");
         }
 
-        File file = root.resolve(token.getPackageName().replace('.', File.separatorChar))
+        File file = root.resolve(token.getPackageName().replace('.', '/'))
                 .resolve(token.getSimpleName() + "Impl.java").toFile();
 
         if (!file.getParentFile().exists()) {
@@ -141,33 +147,29 @@ public class Implementor implements JarImpler {
      */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {
-        Path root = jarFile.toAbsolutePath().getParent();
-        Path tmp = root.resolve("tmp");
-        implement(token, tmp);
+        Path root = jarFile.getParent();
+        implement(token, root);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             throw new ImplerException("Java compiler not found");
         }
         String classpath;
         try {
-            classpath = tmp + File.pathSeparator
-                    + Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI());
+            classpath = Path.of(token.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new ImplerException("Error getting classpath", e);
         }
 
         int exitCode = compiler.run(null, null, null, "-cp", classpath, "-encoding", StandardCharsets.UTF_8.toString(),
-                tmp.toString() + File.separatorChar +
-                        token.getPackageName().replace('.', File.separatorChar) +
-                        File.separatorChar + token.getSimpleName() + "Impl.java");
+                root.resolve(token.getPackageName().replace('.', '/')).resolve(token.getSimpleName() + "Impl.java").toString());
         if (exitCode != 0) {
             throw new ImplerException("Error compiling generated class");
         }
         Manifest manifest = new Manifest();
         manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, token.getCanonicalName() + "Impl");
         try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile), manifest)) {
-            jarOutputStream.putNextEntry(new ZipEntry(token.getPackageName().replace('.', File.separatorChar) + File.separatorChar + token.getSimpleName() + "Impl.class"));
-            Files.copy(tmp.resolve(token.getPackageName().replace('.', File.separatorChar)).resolve(token.getSimpleName() + "Impl.class"), jarOutputStream);
+            jarOutputStream.putNextEntry(new ZipEntry(token.getPackageName().replace('.', '/') + '/' + token.getSimpleName() + "Impl.class"));
+            Files.copy(root.resolve(token.getPackageName().replace('.', '/')).resolve(token.getSimpleName() + "Impl.class"), jarOutputStream);
         } catch (IOException e) {
             throw new ImplerException("Error writing to jar file", e);
         }
