@@ -13,15 +13,31 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.*;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
 /**
  * Class for implementing interfaces and creating JAR files with the implementation.
- * This class implements {@link info.kgeorgiy.java.advanced.implementor.JarImpler}.
+ * This class implements {@link JarImpler}.
  */
 public class Implementor implements JarImpler {
+
+    /**
+     * The tab string.
+     */
+    private final String TAB = "    ";
+
+    /**
+     * The new line string.
+     */
+    private final String NEW_LINE = System.lineSeparator();
+
+    /**
+     * The space string.
+     */
+    private final String SPACE = " ";
 
     /**
      * Default constructor.
@@ -30,14 +46,9 @@ public class Implementor implements JarImpler {
     }
 
     /**
-     * Implements the given interface and writes the implementation to the specified directory.
-     *
-     * @param token type token to create implementation for.
-     * @param root  root directory.
-     * @throws ImplerException if an error occurred during the implementation.
+     * {@inheritDoc}
      */
 
-    // :NOTE: inherit docs
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         if (!token.isInterface() || Modifier.isPrivate(token.getModifiers())) {
@@ -57,22 +68,22 @@ public class Implementor implements JarImpler {
 
         StringBuilder classBuilder = new StringBuilder();
         if (!token.getPackageName().isEmpty()) {
-            classBuilder.append("package ").append(token.getPackageName()).append(";").append(System.lineSeparator());
+            classBuilder.append("package ").append(token.getPackageName()).append(";").append(NEW_LINE);
         }
 
         classBuilder.append("public class ").append(token.getSimpleName()).append("Impl implements ")
-                .append(token.getCanonicalName()).append(" {").append(System.lineSeparator());
+                .append(token.getCanonicalName()).append(" {").append(NEW_LINE);
 
         for (Method method : token.getMethods()) {
-            classBuilder.append("    ").append(Modifier.toString(method.getModifiers() & ~Modifier.ABSTRACT & ~Modifier.TRANSIENT))
-                    .append(" ").append(method.getReturnType().getCanonicalName())
-                    .append(" ").append(method.getName()).append(getMethodParameters(method)).append(" {").append(System.lineSeparator());
+            classBuilder.append(TAB).append(Modifier.toString(method.getModifiers() & ~Modifier.ABSTRACT & ~Modifier.TRANSIENT))
+                    .append(SPACE).append(method.getReturnType().getCanonicalName())
+                    .append(SPACE).append(method.getName()).append(getMethodParameters(method)).append(" {").append(NEW_LINE);
 
             if (!method.getReturnType().equals(Void.TYPE)) {
-                classBuilder.append("        return ").append(getDefaultValue(method.getReturnType())).append(";").append(System.lineSeparator());
+                classBuilder.append(TAB).append(TAB).append("return ").append(getDefaultValue(method.getReturnType())).append(";").append(NEW_LINE);
             }
 
-            classBuilder.append("    }").append(System.lineSeparator());
+            classBuilder.append(TAB).append("}").append(NEW_LINE);
         }
 
         classBuilder.append("}");
@@ -125,28 +136,13 @@ public class Implementor implements JarImpler {
      * @return a string representation of the method parameters.
      */
     private String getMethodParameters(Method method) {
-        StringBuilder builder = new StringBuilder("(");
-        boolean firstFlag = true;
-        for (Class<?> parameterType : method.getParameterTypes()) {
-            if (!firstFlag) {
-                builder.append(", ");
-            }
-            builder.append(parameterType.getCanonicalName()).append(" arg");
-            if (!firstFlag)
-                builder.append(builder.toString().split(", ").length);
-            firstFlag = false;
-        }
-        // :NOTE: stream join
-        builder.append(")");
-        return builder.toString();
+        Stream<String> stream = Stream.of(method.getParameters())
+                .map(parameter -> parameter.getType().getCanonicalName() + SPACE + parameter.getName());
+        return "(" + String.join(", ", stream.toArray(String[]::new)) + ")";
     }
 
     /**
-     * Implements the given interface and creates a JAR file with the implementation.
-     *
-     * @param token   type token to create implementation for.
-     * @param jarFile target JAR file.
-     * @throws ImplerException if an error occurred during the implementation.
+     * {@inheritDoc}
      */
     @Override
     public void implementJar(Class<?> token, Path jarFile) throws ImplerException {

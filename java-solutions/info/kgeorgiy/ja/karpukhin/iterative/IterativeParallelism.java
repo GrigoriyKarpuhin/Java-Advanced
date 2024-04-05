@@ -1,12 +1,13 @@
 package info.kgeorgiy.ja.karpukhin.iterative;
 
+import info.kgeorgiy.java.advanced.iterative.NewScalarIP;
 import info.kgeorgiy.java.advanced.iterative.ScalarIP;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class IterativeParallelism implements ScalarIP {
+public class IterativeParallelism implements NewScalarIP {
 
     private <T> List<List<? extends T>> split(int threads, List<? extends T> values) {
         List<List<? extends T>> result = new ArrayList<>();
@@ -43,6 +44,31 @@ public class IterativeParallelism implements ScalarIP {
             thread.join();
         }
         return result;
+    }
+
+    @Override
+    public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator, int step) throws InterruptedException {
+        return null;
+    }
+
+    @Override
+    public <T> T minimum(int threads, List<? extends T> values, Comparator<? super T> comparator, int step) throws InterruptedException {
+        return null;
+    }
+
+    @Override
+    public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate, int step) throws InterruptedException {
+        return false;
+    }
+
+    @Override
+    public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate, int step) throws InterruptedException {
+        return false;
+    }
+
+    @Override
+    public <T> int count(int threads, List<? extends T> values, Predicate<? super T> predicate, int step) throws InterruptedException {
+        return 0;
     }
 
     @Override
