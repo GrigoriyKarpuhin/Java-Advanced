@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import javax.tools.JavaCompiler;
@@ -136,9 +137,9 @@ public class Implementor implements JarImpler {
      * @return a string representation of the method parameters.
      */
     private String getMethodParameters(Method method) {
-        Stream<String> stream = Stream.of(method.getParameters())
-                .map(parameter -> parameter.getType().getCanonicalName() + SPACE + parameter.getName());
-        return "(" + String.join(", ", stream.toArray(String[]::new)) + ")";
+        String stream = Stream.of(method.getParameters())
+                .map(parameter -> parameter.getType().getCanonicalName() + SPACE + parameter.getName()).collect(Collectors.joining(", "));
+        return "(" + stream + ")";
     }
 
     /**
