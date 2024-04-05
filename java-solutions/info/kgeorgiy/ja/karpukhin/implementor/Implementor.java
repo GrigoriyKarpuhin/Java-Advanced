@@ -36,6 +36,8 @@ public class Implementor implements JarImpler {
      * @param root  root directory.
      * @throws ImplerException if an error occurred during the implementation.
      */
+
+    // :NOTE: inherit docs
     @Override
     public void implement(Class<?> token, Path root) throws ImplerException {
         if (!token.isInterface() || Modifier.isPrivate(token.getModifiers())) {
@@ -107,7 +109,7 @@ public class Implementor implements JarImpler {
      * @return the default value for the given type.
      */
     private String getDefaultValue(Class<?> type) {
-        if (type.equals(boolean.class)) {
+        if (type == boolean.class) {
             return "false";
         } else if (type.isPrimitive()) {
             return "0";
@@ -134,6 +136,7 @@ public class Implementor implements JarImpler {
                 builder.append(builder.toString().split(", ").length);
             firstFlag = false;
         }
+        // :NOTE: stream join
         builder.append(")");
         return builder.toString();
     }
