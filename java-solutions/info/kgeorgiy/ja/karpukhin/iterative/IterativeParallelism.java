@@ -21,10 +21,8 @@ public class IterativeParallelism implements NewScalarIP {
 
     private <T> List<List<? extends T>> split(int threads, List<? extends T> values, int step) {
         List<List<? extends T>> result = new ArrayList<>();
-        List<? extends T> filteredValues = IntStream.range(0, values.size())
-                .filter(i -> i % step == 0)
-                .mapToObj(values::get)
-                .toList();
+        List<? extends T> filteredValues = IntStream.iterate(0, i -> i < values.size(), i -> i + step)
+                .mapToObj(values::get).toList();
         int size = filteredValues.size() / threads;
         int mod = filteredValues.size() % threads;
         int left = 0;
