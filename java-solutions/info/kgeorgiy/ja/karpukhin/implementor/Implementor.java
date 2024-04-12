@@ -28,17 +28,17 @@ public class Implementor implements JarImpler {
     /**
      * The tab string.
      */
-    private final String TAB = "    ";
+    private static final String TAB = "    ";
 
     /**
      * The new line string.
      */
-    private final String NEW_LINE = System.lineSeparator();
+    private static final String NEW_LINE = System.lineSeparator();
 
     /**
      * The space string.
      */
-    private final String SPACE = " ";
+    private static final String SPACE = " ";
 
     /**
      * Default constructor.
