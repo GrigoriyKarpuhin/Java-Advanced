@@ -70,8 +70,8 @@ public class IterativeParallelism implements NewScalarIP {
      */
     @Override
     public <T> T maximum(int threads, List<? extends T> values, Comparator<? super T> comparator, int step) throws InterruptedException {
-        return executeInThreads(threads, values, part -> part.stream().max(comparator).orElseThrow(), step)
-                .stream().max(comparator).orElseThrow();
+        return executeInThreads(threads, values, part -> part.stream().max(comparator).orElse(null), step)
+                .stream().max(comparator).orElse(null);
     }
 
     /**
@@ -87,7 +87,8 @@ public class IterativeParallelism implements NewScalarIP {
      */
     @Override
     public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate, int step) throws InterruptedException {
-        return count(threads, values, predicate, step) == (values.size() + step - 1) / step;
+        return executeInThreads(threads, values, part -> part.stream().allMatch(predicate), step)
+                .stream().allMatch(Boolean::booleanValue);
     }
 
     /**
@@ -95,7 +96,8 @@ public class IterativeParallelism implements NewScalarIP {
      */
     @Override
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate, int step) throws InterruptedException {
-        return count(threads, values, predicate, step) > 0;
+        return executeInThreads(threads, values, part -> part.stream().anyMatch(predicate), step)
+                .stream().anyMatch(Boolean::booleanValue);
     }
 
     /**

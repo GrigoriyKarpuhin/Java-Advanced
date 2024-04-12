@@ -1,6 +1,5 @@
 package info.kgeorgiy.ja.karpukhin.iterative;
 
-
 import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
 import java.util.*;
@@ -11,6 +10,7 @@ public class ParallelMapperImpl implements ParallelMapper {
     private final Queue<Runnable> tasks = new LinkedList<>();
 
     public ParallelMapperImpl(int threads) {
+
     }
 
     @Override
