@@ -46,9 +46,9 @@ public class IterativeParallelism implements NewScalarIP {
         if (step <= 0) {
             throw new IllegalArgumentException("Step should be positive");
         }
+        int myThreads = Math.min(threads, (values.size() + step - 1) / step);
         if (parallelMapper == null) {
             List<Thread> threadList = new ArrayList<>();
-            int myThreads = Math.min(threads, (values.size() + step - 1) / step);
             List<R> result = new ArrayList<>(Collections.nCopies(myThreads, null));
             List<List<? extends T>> parts = split(myThreads, values, step);
             for (int i = 0; i < myThreads; i++) {
@@ -61,7 +61,7 @@ public class IterativeParallelism implements NewScalarIP {
             }
             return result;
         } else {
-            return parallelMapper.map(function, split(threads, values, step));
+            return parallelMapper.map(function, split(myThreads, values, step));
         }
     }
 
@@ -96,8 +96,7 @@ public class IterativeParallelism implements NewScalarIP {
      */
     @Override
     public <T> boolean any(int threads, List<? extends T> values, Predicate<? super T> predicate, int step) throws InterruptedException {
-        return executeInThreads(threads, values, part -> part.stream().anyMatch(predicate), step)
-                .stream().anyMatch(Boolean::booleanValue);
+        return !all(threads, values, predicate.negate(), step);
     }
 
     /**
