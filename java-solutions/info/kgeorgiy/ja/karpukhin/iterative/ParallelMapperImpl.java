@@ -10,7 +10,9 @@ public class ParallelMapperImpl implements ParallelMapper {
     private final Queue<Runnable> tasks = new LinkedList<>();
 
     public ParallelMapperImpl(int threads) {
+        // :NOTE: streams
         for (int i = 0; i < threads; i++) {
+            // :NOTE: создается одинаковая лямбда много раз
             Thread thread = new Thread(() -> {
                 try {
                     while (!Thread.interrupted()) {
@@ -35,11 +37,13 @@ public class ParallelMapperImpl implements ParallelMapper {
     public <T, R> List<R> map(Function<? super T, ? extends R> f, List<? extends T> args) throws InterruptedException {
         List<R> result = new ArrayList<>(Collections.nCopies(args.size(), null));
         final Counter counter = new Counter(args.size());
+        // :NOTE: streams
         for (int i = 0; i < args.size(); i++) {
             final int index = i;
             submit(() -> result.set(index, f.apply(args.get(index))), counter);
         }
 
+        // :NOTE: Может, стоило сделать сами функции counter synchronized?
         synchronized (counter) {
             while (counter.getValue() > 0) {
                 counter.wait();
@@ -55,6 +59,7 @@ public class ParallelMapperImpl implements ParallelMapper {
             try {
                 thread.join();
             } catch (InterruptedException ignored) {
+                // :NOTE: Тред, который сломался, не будет заджоинен.
             }
         }
     }
@@ -72,6 +77,7 @@ public class ParallelMapperImpl implements ParallelMapper {
         }
     }
 
+    // :NOTE: private
     static class Counter {
         private int value;
 

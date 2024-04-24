@@ -51,11 +51,14 @@ public class IterativeParallelism implements NewScalarIP {
             List<Thread> threadList = new ArrayList<>();
             List<R> result = new ArrayList<>(Collections.nCopies(myThreads, null));
             List<List<? extends T>> parts = split(myThreads, values, step);
+
+            // :NOTE: streams
             for (int i = 0; i < myThreads; i++) {
                 int index = i;
                 threadList.add(new Thread(() -> result.set(index, function.apply(parts.get(index)))));
                 threadList.get(i).start();
             }
+            // :NOTE: неправильный джоин
             for (Thread thread : threadList) {
                 thread.join();
             }
