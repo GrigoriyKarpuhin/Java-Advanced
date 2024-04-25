@@ -45,8 +45,10 @@ public class ParallelMapperImpl implements ParallelMapper {
                     submit(() -> result.set(index, f.apply(args.get(index))), counter);
                 });
 
-        while (counter.getValue() > 0) {
-            counter.wait();
+        synchronized (counter) {
+            while (counter.getValue() > 0) {
+                counter.wait();
+            }
         }
         return result;
     }
@@ -91,7 +93,7 @@ public class ParallelMapperImpl implements ParallelMapper {
             value--;
         }
 
-        public synchronized int getValue() {
+        public int getValue() {
             return value;
         }
 
