@@ -4,50 +4,49 @@ import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 public class ParallelMapperImpl implements ParallelMapper {
     private final List<Thread> threads = new ArrayList<>();
     private final Queue<Runnable> tasks = new LinkedList<>();
 
     public ParallelMapperImpl(int threads) {
-        // :NOTE: streams
-        for (int i = 0; i < threads; i++) {
-            // :NOTE: создается одинаковая лямбда много раз
-            Thread thread = new Thread(() -> {
-                try {
-                    while (!Thread.interrupted()) {
-                        Runnable task;
-                        synchronized (tasks) {
-                            while (tasks.isEmpty()) {
-                                tasks.wait();
-                            }
-                            task = tasks.poll();
+        Runnable taskRunner = () -> {
+            try {
+                while (!Thread.interrupted()) {
+                    Runnable task;
+                    synchronized (tasks) {
+                        while (tasks.isEmpty()) {
+                            tasks.wait();
                         }
-                        task.run();
+                        task = tasks.poll();
                     }
-                } catch (InterruptedException ignored) {
+                    task.run();
                 }
-            });
-            thread.start();
-            this.threads.add(thread);
-        }
+            } catch (InterruptedException ignored) {
+            }
+        };
+
+        IntStream.iterate(0, i -> i < threads, i -> i + 1)
+                .forEach(i -> {
+                    Thread thread = new Thread(taskRunner);
+                    thread.start();
+                    this.threads.add(thread);
+                });
     }
 
     @Override
     public <T, R> List<R> map(Function<? super T, ? extends R> f, List<? extends T> args) throws InterruptedException {
         List<R> result = new ArrayList<>(Collections.nCopies(args.size(), null));
         final Counter counter = new Counter(args.size());
-        // :NOTE: streams
-        for (int i = 0; i < args.size(); i++) {
-            final int index = i;
-            submit(() -> result.set(index, f.apply(args.get(index))), counter);
-        }
+        IntStream.iterate(0, i -> i < args.size(), i -> i + 1)
+                .forEach(i -> {
+                    final int index = i;
+                    submit(() -> result.set(index, f.apply(args.get(index))), counter);
+                });
 
-        // :NOTE: Может, стоило сделать сами функции counter synchronized?
-        synchronized (counter) {
-            while (counter.getValue() > 0) {
-                counter.wait();
-            }
+        while (counter.getValue() > 0) {
+            counter.wait();
         }
         return result;
     }
@@ -58,8 +57,8 @@ public class ParallelMapperImpl implements ParallelMapper {
         for (Thread thread : threads) {
             try {
                 thread.join();
-            } catch (InterruptedException ignored) {
-                // :NOTE: Тред, который сломался, не будет заджоинен.
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -77,8 +76,7 @@ public class ParallelMapperImpl implements ParallelMapper {
         }
     }
 
-    // :NOTE: private
-    static class Counter {
+    private static class Counter {
         private int value;
 
         public Counter(int value) {
@@ -93,7 +91,7 @@ public class ParallelMapperImpl implements ParallelMapper {
             value--;
         }
 
-        public int getValue() {
+        public synchronized int getValue() {
             return value;
         }
 
