@@ -19,10 +19,7 @@ public class WebCrawler implements Crawler {
 
     @Override
     public Result download(String url, int depth) {
-        Set<String> downloaded = new ConcurrentSkipListSet<>();
-        Map<String, IOException> errors = new ConcurrentHashMap<>();
-        downloadHelper(url, depth, downloaded, errors);
-        return new Result(new ArrayList<>(downloaded), errors);
+        return null;
     }
 
     @Override
@@ -31,26 +28,9 @@ public class WebCrawler implements Crawler {
         extractors.shutdown();
     }
 
-    private void downloadHelper(String url, int depth, Set<String> downloaded, Map<String, IOException> errors) {
-        if (depth == 0 || downloaded.contains(url)) {
-            return;
-        }
-        downloaded.add(url);
-        try {
-            Document document = downloader.download(url);
-            List<String> links = document.extractLinks();
-            for (String link : links) {
-                downloadHelper(link, depth - 1, downloaded, errors);
-            }
-        } catch (IOException e) {
-            errors.put(url, e);
-        }
-
-    }
-
     public static void main(String[] args) {
-        if (args == null || args.length < 1 || args.length > 4) {
-            System.err.println("Usage: WebCrawler url [depth [downloads [extractors]]]");
+        if (args == null || args.length == 0 || args.length > 5) {
+            System.err.println("Usage: WebCrawler url [depth [downloads [extractors [perHost]]]]");
         }
     }
 }

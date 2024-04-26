@@ -64,6 +64,7 @@ public class IterativeParallelism implements NewScalarIP {
                     thread.join();
                 } catch (InterruptedException e) {
                     thread.interrupt();
+                    throw new InterruptedException("Thread was interrupted");
                 }
             }
             return result;
