@@ -13,12 +13,22 @@ public class WebCrawler implements NewCrawler {
     private final ExecutorService extractors;
     private final Downloader downloader;
 
+    /*
+     * Constructor for WebCrawler
+     * @param downloader - downloader for downloading pages
+     * @param downloaders - number of downloaders
+     * @param extractors - number of extractors
+     * @param perHost - number of pages to download from one host
+     */
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
         this.downloaders = Executors.newFixedThreadPool(downloaders);
         this.extractors = Executors.newFixedThreadPool(extractors);
         this.downloader = downloader;
     }
 
+    /*
+        {@inheritDoc}
+     */
     @Override
     public Result download(String url, int depth, Set<String> excludes) {
         Phaser phaser = new Phaser(1);
@@ -66,12 +76,19 @@ public class WebCrawler implements NewCrawler {
         recursiveDownload(nextUrls, downloaded, errors, depth - 1, phaser, used, excludes);
     }
 
+    /*
+        {@inheritDoc}
+    */
     @Override
     public void close() {
         downloaders.shutdown();
         extractors.shutdown();
     }
 
+    /*
+        Main method for WebCrawler
+        @param args - command line arguments
+     */
     public static void main(String[] args) {
         if (args == null || args.length == 0 || args.length > 5) {
             System.err.println("Usage: WebCrawler url [depth [downloads [extractors [perHost]]]]");
