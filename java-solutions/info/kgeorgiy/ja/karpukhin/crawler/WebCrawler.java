@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
+// :NOTE: javadoc
+
 public class WebCrawler implements NewCrawler {
     private final ExecutorService downloaders;
     private final ExecutorService extractors;
