@@ -11,7 +11,7 @@ public class WebCrawler implements NewCrawler {
     private final ExecutorService extractors;
     private final Downloader downloader;
 
-    /*
+    /**
      * Constructor for WebCrawler
      * @param downloader - downloader for downloading pages
      * @param downloaders - number of downloaders
@@ -24,7 +24,7 @@ public class WebCrawler implements NewCrawler {
         this.downloader = downloader;
     }
 
-    /*
+    /**
         {@inheritDoc}
      */
     @Override
@@ -74,7 +74,7 @@ public class WebCrawler implements NewCrawler {
         recursiveDownload(nextUrls, downloaded, errors, depth - 1, phaser, used, excludes);
     }
 
-    /*
+    /**
         {@inheritDoc}
     */
     @Override
@@ -83,7 +83,7 @@ public class WebCrawler implements NewCrawler {
         extractors.shutdown();
     }
 
-    /*
+    /**
         Main method for WebCrawler
         @param args - command line arguments
      */
