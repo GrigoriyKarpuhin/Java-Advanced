@@ -79,8 +79,8 @@ public class WebCrawler implements NewCrawler {
     */
     @Override
     public void close() {
-        downloaders.shutdown();
-        extractors.shutdown();
+        downloaders.close();
+        extractors.close();
     }
 
     /**
